@@ -27,6 +27,8 @@ public class UserController {
     public ResponseEntity<User> login(@RequestBody User user) {
         if (checkForm(user)) return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         User bdUser = userRepository.findByUsername(user.getUsername());
+        System.out.println(user.getUsername());
+        System.out.println(bdUser.getUsername());
         if (!bdUser.getPassword().equals(user.getPassword())) {
             System.out.println("IF");
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);

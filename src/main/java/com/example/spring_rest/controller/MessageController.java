@@ -6,12 +6,15 @@ import com.example.spring_rest.repos.MessageRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("message")
@@ -23,8 +26,23 @@ public class MessageController {
 
 
     @GetMapping
-    public Iterable<Message> getMessages() throws JsonProcessingException {
-        return messageRepository.findAll();
+    public Map getMessages(@RequestParam(defaultValue = "1", required = false) Integer page,
+                                         @RequestParam(defaultValue = "5", required = false) Integer pagecount ) throws JsonProcessingException {
+        List<Message> messages = messageRepository.findAll().stream().sorted(new Comparator<Message>() {
+            @Override
+            public int compare(Message o1, Message o2) {
+                if(o1.getId() > o2.getId()) return 1;
+                if(o1.getId() < o2.getId()) return -1;
+                if(o1.getId() == o2.getId()) return 0;
+                return 0;
+            }
+        }).collect(Collectors.toList());
+        page--;
+        messages = messages.stream().skip(page*pagecount).limit(pagecount).collect(Collectors.toList());
+        Map map = new HashMap();
+        map.put("messages", messages);
+        map.put("messageCount",messageRepository.findAll().size());
+        return map;
     }
 
     @GetMapping("{id}")
